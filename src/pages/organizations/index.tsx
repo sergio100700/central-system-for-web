@@ -14,8 +14,9 @@ import {
 } from '@mui/material'
 import { useFetch } from '../../hooks/useFetch'
 import TableOrganizations, { type OrganizationRow } from './TableOrganizations'
+import { API } from '../../config'
 
-const ORGANIZATIONS_URL = 'http://localhost:3000/organizations'
+const ORGANIZATIONS_URL = API.organizations
 
 type OrganizationPayload = {
     name: string
@@ -41,6 +42,7 @@ function Organizations() {
     const [editSubmitting, setEditSubmitting] = useState(false)
     const [deleteSubmitting, setDeleteSubmitting] = useState(false)
     const [organizationToDelete, setOrganizationToDelete] = useState<OrganizationRow | null>(null)
+    const [deleteError, setDeleteError] = useState<string | null>(null)
 
     useEffect(() => {
         if (dialogMode !== 'edit' || !activeOrganization) {
@@ -169,7 +171,7 @@ function Organizations() {
         }
 
         setDeleteSubmitting(true)
-        setActionError(null)
+        setDeleteError(null)
 
         try {
             const response = await fetch(`${ORGANIZATIONS_URL}/${organizationToDelete.id}`, {
@@ -177,13 +179,17 @@ function Organizations() {
             })
 
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`)
+                throw new Error(
+                    response.status === 500
+                        ? 'Cannot delete this organization. It may have charge points associated.'
+                        : `Request failed with status ${response.status}`
+                )
             }
 
             setOrganizationToDelete(null)
             refetch()
         } catch (caughtError) {
-            setActionError(caughtError instanceof Error ? caughtError.message : 'Unknown error')
+            setDeleteError(caughtError instanceof Error ? caughtError.message : 'Unknown error')
         } finally {
             setDeleteSubmitting(false)
         }
@@ -195,9 +201,6 @@ function Organizations() {
                 <Box>
                     <Typography variant="h4" fontWeight={700} gutterBottom>
                         Organizations
-                    </Typography>
-                    <Typography color="text.secondary">
-                        Listado y alta de organizaciones
                     </Typography>
                 </Box>
 
@@ -315,18 +318,21 @@ function Organizations() {
 
             <Dialog
                 open={organizationToDelete !== null}
-                onClose={() => setOrganizationToDelete(null)}
+                onClose={() => { setOrganizationToDelete(null); setDeleteError(null) }}
                 fullWidth
                 maxWidth="xs"
             >
                 <DialogTitle>Delete organization</DialogTitle>
                 <DialogContent>
-                    <Typography sx={{ pt: 1 }}>
-                        Delete {organizationToDelete?.name}? This action cannot be undone.
-                    </Typography>
+                    <Stack spacing={2} sx={{ pt: 1 }}>
+                        <Typography>
+                            Delete {organizationToDelete?.name}? This action cannot be undone.
+                        </Typography>
+                        {deleteError ? <Alert severity="error">{deleteError}</Alert> : null}
+                    </Stack>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOrganizationToDelete(null)} disabled={deleteSubmitting}>
+                    <Button onClick={() => { setOrganizationToDelete(null); setDeleteError(null) }} disabled={deleteSubmitting}>
                         Cancel
                     </Button>
                     <Button color="error" variant="contained" onClick={handleDelete} disabled={deleteSubmitting}>

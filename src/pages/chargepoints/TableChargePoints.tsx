@@ -6,42 +6,36 @@ import {
   type GridRowSelectionModel,
 } from '@mui/x-data-grid'
 
-export type OrganizationRow = {
+export type ChargePointRow = {
   id: string
-  name: string
-  legalEntity?: string | null
+  identity: string
+  cpo: string
 }
 
-type TableOrganizationsProps = {
-  rows: OrganizationRow[]
+type TableChargePointsProps = {
+  rows: ChargePointRow[]
   loading?: boolean
-  onView: (organization: OrganizationRow) => void
-  onEdit: (organization: OrganizationRow) => void
-  onDelete: (organization: OrganizationRow) => void
+  onView: (chargePoint: ChargePointRow) => void
+  onEdit: (chargePoint: ChargePointRow) => void
+  onDelete: (chargePoint: ChargePointRow) => void
 }
 
-function TableOrganizations({
+function TableChargePoints({
   rows,
   loading = false,
   onView,
   onEdit,
   onDelete,
-}: TableOrganizationsProps) {
+}: TableChargePointsProps) {
   const [selectionModel, setSelectionModel] = useState<GridRowSelectionModel>({
     type: 'include',
     ids: new Set(),
   })
 
-  const columns: GridColDef<OrganizationRow>[] = [
+  const columns: GridColDef<ChargePointRow>[] = [
     { field: 'id', headerName: 'ID', flex: 1.2, minWidth: 240 },
-    { field: 'name', headerName: 'Name', flex: 1, minWidth: 180 },
-    {
-      field: 'legalEntity',
-      headerName: 'Legal Entity',
-      flex: 1,
-      minWidth: 220,
-      valueGetter: (_, row) => row.legalEntity || '-',
-    },
+    { field: 'identity', headerName: 'Identity', flex: 1, minWidth: 180 },
+    { field: 'cpo', headerName: 'CPO', flex: 1, minWidth: 220 },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -90,9 +84,8 @@ function TableOrganizations({
           }}
         />
       </Box>
-
     </Paper>
   )
 }
 
-export default TableOrganizations
+export default TableChargePoints
